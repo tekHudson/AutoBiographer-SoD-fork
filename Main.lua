@@ -1124,8 +1124,6 @@ hooksecurefunc("AscendStop", function()
 end);
 
 GameTooltip:HookScript("OnTooltipSetItem", function(self)
-  if (not AutoBiographer_Settings) then return end
-
   local name, link = self:GetItem()
   if (not link) then return end
 
@@ -1147,8 +1145,6 @@ GameTooltip:HookScript("OnTooltipSetItem", function(self)
 end)
 
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
-  if (not AutoBiographer_Settings) then return end
-
   local unitName, unitId = self:GetUnit()
   if (not unitId) then return end
 
