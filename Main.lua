@@ -149,7 +149,7 @@ end
 
 function EM.EventHandlers.ADDON_LOADED(self, addonName, ...)
   if addonName ~= "AutoBiographer" then return end
-  
+
   if type(_G["AUTOBIOGRAPHER_SETTINGS"]) ~= "table" then
 		_G["AUTOBIOGRAPHER_SETTINGS"] = {
       EventDisplayFilters = {}, -- Dict<EventSubType, bool>
@@ -607,7 +607,7 @@ function EM.EventHandlers.ITEM_PUSH(self, arg1, arg2, arg3)
   --print(tostring(arg1) .. ", " .. tostring(arg2) .. ", " .. tostring(arg3))
 end
 
-function EM.EventHandlers.LEARNED_SPELL_IN_TAB(self, spellId, skillInfoIndex, isGuildPerkSpell)
+function EM.EventHandlers.LEARNED_SPELL_IN_SKILL_LINE(self, spellId, skillInfoIndex, isGuildPerkSpell)
   local name, rank, icon, castTime, minRange, maxRange, id = GetSpellInfo(spellId)
   Controller:OnSpellLearned(time(), HelperFunctions.GetCoordinatesByUnitId("player"), spellId, name, rank)
 end
@@ -1567,11 +1567,15 @@ function EM:WasTradeRecentlyMade()
   return self.TradeInfo and not self.TradeInfo.Canceled and (not self.TradeInfo.Closed or GetTime() - self.TradeInfo.ClosedTimestamp < 1)
 end
 
--- Register each event for which we have an event handler.
+-- Register each event for which we have an event handler. Each registration
+-- is isolated in its own pcall so a single renamed/removed client event
+-- (e.g. LEARNED_SPELL_IN_TAB -> LEARNED_SPELL_IN_SKILL_LINE in patch 1.15.9)
+-- can't throw mid-loop and prevent later events, including ADDON_LOADED,
+-- from ever being registered.
 EM.GameVersion = HelperFunctions.GetGameVersion()
 EM.Frame = CreateFrame("Frame")
 for eventName,_ in pairs(EM.EventHandlers) do
-	  EM.Frame:RegisterEvent(eventName)
+	  pcall(function() EM.Frame:RegisterEvent(eventName) end)
 end
 EM.Frame:SetScript("OnEvent", function(_, event, ...) EM:OnEvent(_, event, ...) end)
 
